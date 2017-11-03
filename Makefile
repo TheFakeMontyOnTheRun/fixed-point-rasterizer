@@ -8,7 +8,7 @@ CXXFLAGS = -std=c++14 -O2 -g $(SDL_INCLUDE) -Iinclude -Ifixed_point/include -Ist
 OBJS = SDLVersion/main.o \
         SDLVersion/CSDLRenderer.o \
         src/CRenderer.o \
-        src/RaycastCommon.o \
+        src/RasterizerCommon.o \
         src/NativeBitmap.o \
         src/LoadPNG.o
 

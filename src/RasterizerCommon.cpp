@@ -16,7 +16,7 @@ using eastl::array;
 
 using sg14::fixed_point;
 
-#include "RaycastCommon.h"
+#include "RasterizerCommon.h"
 
 namespace odb {
 

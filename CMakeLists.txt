@@ -15,11 +15,11 @@ set(SOURCE_FILES
         SDLVersion/CSDLRenderer.cpp
         SDLVersion/main.cpp
         src/CRenderer.cpp
-        src/RaycastCommon.cpp
+        src/RasterizerCommon.cpp
         src/NativeBitmap.cpp
         src/LoadPNG.cpp
         include/CRenderer.h
-        include/RaycastCommon.h
+        include/RasterizerCommon.h
 )
 
 find_package(OpenGL REQUIRED)

@@ -8,7 +8,7 @@ LDFLAGS = -lemu
 OBJS = src/CRenderer.o \
     src/NativeBitmap.o \
     src/LoadPNG.o \
-    src/RaycastCommon.o \
+    src/RasterizerCommon.o \
     DOSVersion/main.o \
     DOSVersion/CDOSRenderer.o \
 

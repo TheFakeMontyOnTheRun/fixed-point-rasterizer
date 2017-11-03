@@ -17,7 +17,7 @@ using eastl::array;
 using sg14::fixed_point;
 
 #include "NativeBitmap.h"
-#include "RaycastCommon.h"
+#include "RasterizerCommon.h"
 #include "CRenderer.h"
 
 #ifdef __EMSCRIPTEN__

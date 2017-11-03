@@ -15,7 +15,7 @@ using eastl::array;
 using sg14::fixed_point;
 
 #include "NativeBitmap.h"
-#include "RaycastCommon.h"
+#include "RasterizerCommon.h"
 #include "CRenderer.h"
 
 void* operator new[](size_t size, const char* pName, int flags, unsigned debugFlags,

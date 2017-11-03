@@ -9,7 +9,7 @@ CC = emcc
 OBJS = SDLVersion/main.o \
         SDLVersion/CSDLRenderer.o \
         src/CRenderer.o \
-        src/RaycastCommon.o \
+        src/RasterizerCommon.o \
         src/NativeBitmap.o \
         src/LoadPNG.o
 	
