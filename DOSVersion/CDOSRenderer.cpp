@@ -33,50 +33,21 @@ using sg14::fixed_point;
 
 namespace odb {
 
-  array<int, 320 * 200> mBuffer;
+  array<uint32_t , 320 * 200> mBuffer;
+  array< uint8_t , 320 * 200 > mMemorySnapshot;
 
-  int offset = 0;
-  array< unsigned char, 320 * 200 > buffer;
-  int origin = 0;
-  int lastOrigin = -1;
-  unsigned char shade;
+  uint32_t origin = 0;
+    uint32_t lastOrigin = -1;
+  uint8_t shade;
   long frame = 0;
 
-    void CRenderer::putRaw(int x, int y, uint32_t pixel) {
+    void CRenderer::putRaw(uint16_t x, uint16_t y, uint32_t pixel) {
 
         if ( x < 0 || x >= 320 || y < 0 || y > 199 ) {
             return;
         }
 
         mBuffer[ (320 * y ) + x ] = pixel;
-    }
-
-    void CRenderer::put( int x, int y, uint32_t pixel ) {
-
-        if ( x < 0 || x >= 320 || y < 0 || y >= 128 ) {
-	        return;
-        }
-
-        mBuffer[ (320 * y ) + x ] = pixel;
-    }
-
-  void CRenderer::fill( int x1, int y1, int w, int h, const array<uint8_t,4>& colour ) {
-      int _x0 = std::min( 319, std::max( 0, x1) );
-      int _x1 = std::min( 319, std::max( 0,  (x1 + w) ) );
-      int _y0 = std::min( 127, std::max( 0,  y1 ) );
-      int _y1 = std::min( 127, std::max( 0,  (y1 + h) ) );
-
-      int pixel = colour[ 1 ] & 0xFF;
-      pixel += (colour[ 2 ] & 0xFF) << 8;
-      pixel += (colour[ 3 ] & 0xFF) << 16;
-
-      auto data = std::begin( mBuffer );
-
-
-      for ( int y = _y0; y < _y1; ++y ) {
-        auto line = data + (320 * y );
-          std::fill( line + _x0, line + _x1, pixel );
-      }
     }
     
   unsigned char getPaletteEntry( int origin ) {
@@ -112,6 +83,8 @@ namespace odb {
   
   void CRenderer::handleSystemEvents() {
 
+            const static FixP delta{2};
+
           auto lastKey = bioskey(0x11);
 
           bdos(0xC, 0, 0);
@@ -119,33 +92,29 @@ namespace odb {
           switch (lastKey) {
               case 18656:
                   //up
-                  speedY-= 10;
+                  mSpeed.mY -= delta;
                   mNeedsToRedraw = true;
-                  mCached = false;
                   break;
 
               case 8051:
               case 20704:
                   //down
-                  speedY += 10;
+                  mSpeed.mY += delta;
                   mNeedsToRedraw = true;
-                  mCached = false;
                   break;
 
               case 19424: //right arrow
               case 4209: //q
                   //left
-                  speedX -=10;
+                  mSpeed.mX += delta;
                   mNeedsToRedraw = true;
-                  mCached = false;
                   break;
 
               case 4709: //e
               case 19936: //right arrow
                   //right
-                  speedX +=10;
+                  mSpeed.mX -= delta;
                   mNeedsToRedraw = true;
-                  mCached = false;
                   break;
 
               case 3849:
@@ -154,8 +123,6 @@ namespace odb {
               case 5236: //t
                   //space
                   exit(0);
-                  mNeedsToRedraw = true;
-                  mCached = false;
                   break;
               case 561:
                   clearScr = true;
@@ -167,12 +134,12 @@ namespace odb {
                   break;
 
               case 7777:
-                  speedZ += 10;
+                  mSpeed.mZ += delta;
                   mNeedsToRedraw = true;
                   break;
 
               case 11386:
-                  speedZ -= 10;
+                  mSpeed.mZ -= delta;
                   mNeedsToRedraw = true;
                   break;
 
@@ -188,7 +155,7 @@ namespace odb {
 
   void CRenderer::flip() {
       auto source = std::begin(mBuffer);
-      auto destination = std::begin(buffer);
+      auto destination = std::begin(mMemorySnapshot);
     for( int offset = 0; offset < 320 * 200; ++offset ) {
 
         auto origin = *source;
@@ -205,7 +172,7 @@ namespace odb {
         destination = std::next( destination );
     }
     
-    dosmemput(&buffer[0], 320 * 200, 0xa0000);
+    dosmemput(&mMemorySnapshot[0], 320 * 200, 0xa0000);
 
           gotoxy(1, 1);
           printf("%d", ++frame);

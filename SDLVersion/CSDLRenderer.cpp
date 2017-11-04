@@ -59,6 +59,7 @@ namespace odb {
 
     void CRenderer::handleSystemEvents() {
         SDL_Event event;
+        const static FixP delta{2};
 
         while (SDL_PollEvent(&event)) {
 
@@ -84,40 +85,33 @@ namespace odb {
                     case SDLK_SPACE:
                         exit(0);
                         mNeedsToRedraw = true;
-                        mCached = false;
                         break;
 
                     case SDLK_LEFT:
-                        speedX -= 10;
+                        mSpeed.mX += delta;
                         mNeedsToRedraw = true;
-                        mCached = false;
                         break;
                     case SDLK_RIGHT:
-                        speedX += 10;
+                        mSpeed.mX -= delta;
                         mNeedsToRedraw = true;
-                        mCached = false;
                         break;
                     case SDLK_UP:
-                        speedY -= 10;
+                        mSpeed.mY -= delta;
                         mNeedsToRedraw = true;
-                        mCached = false;
                         break;
                     case SDLK_DOWN:
-                        speedY += 10;
+                        mSpeed.mY += delta;
                         mNeedsToRedraw = true;
-                        mCached = false;
                         break;
 
                     case SDLK_z:
-                        speedZ += 10;
+                        mSpeed.mZ += delta;
                         mNeedsToRedraw = true;
-                        mCached = false;
                         break;
 
                     case SDLK_a:
-                        speedZ -= 10;
+                        mSpeed.mZ -= delta;
                         mNeedsToRedraw = true;
-                        mCached = false;
                         break;
 
                     default:
@@ -128,17 +122,7 @@ namespace odb {
         }
     }
 
-    void CRenderer::fill(int x1, int y1, int w, int h, const array<uint8_t, 4> &colour) {
-        SDL_Rect rect;
-        rect.x = x1;
-        rect.y = y1;
-        rect.w = w;
-        rect.h = h;
-
-        SDL_FillRect(video, &rect, SDL_MapRGB(video->format, colour[1], colour[2], colour[3]));
-    }
-
-    void CRenderer::put(int x, int y, uint32_t pixel) {
+    void CRenderer::putRaw(uint16_t x, uint16_t y, uint32_t pixel) {
         SDL_Rect rect;
         rect.x = x;
         rect.y = y;
@@ -147,10 +131,6 @@ namespace odb {
 
         SDL_FillRect(video, &rect, SDL_MapRGB(video->format, ((pixel & 0x000000FF)), ((pixel & 0x0000FF00) >> 8),
                                               ((pixel & 0x00FF0000) >> 16)));
-    }
-
-    void CRenderer::putRaw(int x, int y, uint32_t pixel) {
-        put(x, y, pixel);
     }
 
     void CRenderer::flip() {

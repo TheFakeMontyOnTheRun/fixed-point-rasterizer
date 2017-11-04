@@ -44,13 +44,6 @@ namespace odb {
         };
     }
 
-    int CRenderer::wrap(int i) {
-        while ( i < 0 ) {
-            i += 32;
-        }
-        return i % 32;
-    }
-
     void CRenderer::drawCubeAt(const Vec3& center) {
         FixP height = FixP(1);
         FixP one{ 1 };
@@ -104,6 +97,16 @@ ulz1.mX, urz1.mX,
     }
 
 
+    /*
+     *         /|x1y0
+     * x0y0   / |
+     *       |  |
+     *       |  |
+     * x0y1  |  |
+     *       \  |
+     *        \ |
+     *         \| x1y1
+     */
     void CRenderer::drawWall( FixP x0, FixP x1, FixP x0y0, FixP x0y1, FixP x1y0, FixP x1y1 ) {
 
         if ( x0 > x1) {
@@ -130,8 +133,6 @@ ulz1.mX, urz1.mX,
             return;
         }
 
-        FixP thirtyTwo{ 32 };
-
         FixP upperY0 = x0y0;
         FixP lowerY0 = x0y1;
         FixP upperY1 = x1y0;
@@ -157,28 +158,36 @@ ulz1.mX, urz1.mX,
         uint32_t pixel = 0;
 
         FixP u{0};
-        FixP du = thirtyTwo / (dX);
+
+        //0xFF here acts as a dirty value, indicating there is no last value. But even if we had
+        //textures this big, it would be only at the end of the run.
         uint8_t lastU = 0xFF;
         uint8_t lastV = 0xFF;
-        int* data = textures[0]->getPixelData();
 
+        //we can use this statically, since the textures are already loaded.
+        //we don't need to fetch that data on every run.
+        const static int* data = textures[0]->getPixelData();
+        const static int8_t textureWidth = textures[0]->getWidth();
+        const static FixP textureSize{ textureWidth };
+
+        FixP du = textureSize / (dX);
         auto ix = x;
 
         for (; ix < limit; ++ix ) {
 
-            FixP dv = thirtyTwo / ( y1 - y0 );
+            FixP dv = textureSize / ( y1 - y0 );
             FixP v{0};
             auto iu = static_cast<uint8_t >(u);
 
-            int iY0 = static_cast<uint16_t >(y0);
-            int iY1 = static_cast<uint16_t >(y1);
+            auto iY0 = static_cast<uint16_t >(y0);
+            auto iY1 = static_cast<uint16_t >(y1);
 
             for ( auto iy = iY0; iy < iY1; ++iy ) {
 
                 auto iv = static_cast<uint8_t >(v);
 
                 if ( iv != lastV || iu != lastU ) {
-                    pixel = data[ (iv * 32 ) + iu];
+                    pixel = data[ (iv * textureWidth ) + iu];
                 }
 
                 lastU = iu;
@@ -199,10 +208,17 @@ ulz1.mX, urz1.mX,
     }
 
 
-
+        /*
+         *     x0y0 ____________ x1y0
+         *         /            \
+         *        /             \
+         *  x0y1 /______________\ x1y1
+         */
     void CRenderer::drawFloor(FixP y0, FixP y1, FixP x0y0, FixP x1y0, FixP x0y1, FixP x1y1 ) {
 
+        //if we have a trapezoid in which the base is smaller
         if ( y0 > y1) {
+            //switch y0 with y1
             y0 = y0 + y1;
             y1 = y0 - y1;
             y0 = y0 - y1;
@@ -230,8 +246,7 @@ ulz1.mX, urz1.mX,
         FixP lowerX0 = x0y1;
         FixP lowerX1 = x1y1;
 
-        FixP thirtyTwo{ 32 };
-
+        //what if the trapezoid is flipped horizontally?
         if ( x0y0 > x1y0 ) {
             upperX0 = x1y0;
             upperX1 = x0y0;
@@ -250,19 +265,28 @@ ulz1.mX, urz1.mX,
         uint32_t pixel = 0 ;
 
         FixP v{0};
-        FixP dv = thirtyTwo / (dY);
+
+        //0xFF here acts as a dirty value, indicating there is no last value. But even if we had
+        //textures this big, it would be only at the end of the run.
         uint8_t lastU = 0xFF;
         uint8_t lastV = 0xFF;
-        int* data = textures[0]->getPixelData();
 
         auto iy = static_cast<uint16_t >(y);
+
+        //we can use this statically, since the textures are already loaded.
+        //we don't need to fetch that data on every run.
+        const static int* data = textures[0]->getPixelData();
+        const static int8_t textureWidth = textures[0]->getWidth();
+        const static FixP textureSize{ textureWidth };
+
+        FixP dv = textureSize / (dY);
 
         for (; iy < limit; ++iy ) {
 
             auto iX0 = static_cast<uint16_t >(x0);
             auto iX1 = static_cast<uint16_t >(x1);
 
-            FixP du = thirtyTwo / ( x1 - x0 );
+            FixP du = textureSize / ( x1 - x0 );
             FixP u{0};
             auto iv = static_cast<uint8_t >(v);
 
@@ -270,8 +294,10 @@ ulz1.mX, urz1.mX,
 
                 auto iu = static_cast<uint8_t >(u);
 
+                //only fetch the next texel if we really changed the u, v coordinates
+                //(otherwise, would fetch the same thing anyway)
                 if ( iv != lastV || iu != lastU ) {
-                    pixel = data[ (iv * 32 ) + iu];
+                    pixel = data[ (iv * textureWidth ) + iu];
                 }
 
                 lastU = iu;
@@ -298,11 +324,19 @@ ulz1.mX, urz1.mX,
                  static_cast<uint16_t >(p1.mY)
         );
     }
-    void CRenderer::drawLine(int x0, int y0, int x1, int y1) {
+
+    void CRenderer::drawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1) {
 
         if ( x0 == x1 ) {
-            auto _y0 = std::min( y0, y1 );
-            auto _y1 = std::max( y0, y1 );
+
+            uint16_t _y0 = y0;
+            uint16_t _y1 = y1;
+
+            if ( y0 > y1 ) {
+                _y0 = y1;
+                _y1 = y0;
+            }
+
             for ( int y = _y0; y <= _y1; ++y ) {
                 putRaw( x0, y, 0xFFFFFFFF);
             }
@@ -310,8 +344,13 @@ ulz1.mX, urz1.mX,
         }
 
         if ( y0 == y1 ) {
-            auto _x0 = std::min( x0, x1 );
-            auto _x1 = std::max( x0, x1 );
+            uint16_t _x0 = x0;
+            uint16_t _x1 = x1;
+
+            if ( x0 > x1 ) {
+                _x0 = x1;
+                _x1 = x0;
+            }
 
             for ( int x = _x0; x <= _x1; ++x ) {
                 putRaw( x, y0, 0xFFFFFFFF);
@@ -319,6 +358,7 @@ ulz1.mX, urz1.mX,
             return;
         }
 
+        //switching x0 with x1
         if( x0 > x1 ) {
             x0 = x0 + x1;
             x1 = x0 - x1;
@@ -341,26 +381,24 @@ ulz1.mX, urz1.mX,
 
     void CRenderer::render(long ms) {
 
-        if ( speedX ) {
-            speedX = speedX >> 1;
+        const static FixP two{2};
+
+        if ( mSpeed.mX ) {
+            mSpeed.mX /= two;
             mNeedsToRedraw = true;
         }
 
-        if  ( speedY ) {
-            speedY = speedY >> 1;
+        if  ( mSpeed.mY ) {
+            mSpeed.mY /= two;
             mNeedsToRedraw = true;
         }
 
-        if  ( speedZ ) {
-            speedZ = speedZ >> 1;
+        if  ( mSpeed.mZ ) {
+            mSpeed.mZ /= two;
             mNeedsToRedraw = true;
         }
 
-
-        x += speedX;
-        y += speedY;
-        z += speedZ;
-
+        mCamera += mSpeed;
 
         if ( mNeedsToRedraw ) {
             mNeedsToRedraw = false;
@@ -370,7 +408,7 @@ ulz1.mX, urz1.mX,
             }
 
             FixP thirtyTwo{32};
-            drawCubeAt({ FixP{x} / thirtyTwo, FixP{y} / thirtyTwo, FixP{z} / thirtyTwo });
+            drawCubeAt( mCamera );
         }
 
         flip();
