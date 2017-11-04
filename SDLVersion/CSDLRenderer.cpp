@@ -1,8 +1,4 @@
 #include <string>
-#include <utility>
-#include <functional>
-#include <memory>
-#include <map>
 #include <sg14/fixed_point>
 #include <EASTL/vector.h>
 #include <EASTL/array.h>
@@ -13,14 +9,9 @@ using eastl::array;
 using sg14::fixed_point;
 
 #include "RasterizerCommon.h"
-#include "NativeBitmap.h"
 #include "CRenderer.h"
 
 #include <SDL/SDL.h>
-#include <SDL/SDL_mixer.h>
-#include <cmath>
-#include "NativeBitmap.h"
-#include "LoadPNG.h"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/html5.h>

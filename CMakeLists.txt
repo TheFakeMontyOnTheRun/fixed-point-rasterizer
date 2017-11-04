@@ -8,7 +8,7 @@ include_directories(include)
 include_directories(stb)
 include_directories(fixed_point/include)
 include_directories(core/noudar-core/include)
-include_directories(EASTL/include )
+include_directories(EASTL/include)
 include_directories(EASTL/test/packages/EABase/include/Common)
 
 set(SOURCE_FILES
@@ -20,12 +20,12 @@ set(SOURCE_FILES
         src/LoadPNG.cpp
         include/CRenderer.h
         include/RasterizerCommon.h
-)
+        )
 
 find_package(OpenGL REQUIRED)
 
-include (FindPkgConfig)
+include(FindPkgConfig)
 
 add_executable(timedemo ${SOURCE_FILES})
 
-target_link_libraries(timedemo ${OPENGL_LIBRARIES} ${SDL_LIBRARY}   )
+target_link_libraries(timedemo ${OPENGL_LIBRARIES} ${SDL_LIBRARY})

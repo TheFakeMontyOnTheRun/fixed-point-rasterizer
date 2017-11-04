@@ -1,10 +1,6 @@
 #include <functional>
 #include <memory>
 #include <iostream>
-#include <utility>
-#include <string>
-#include <iostream>
-#include <memory>
 #include <fstream>
 #include <map>
 #include <sg14/fixed_point>
@@ -26,20 +22,20 @@ using sg14::fixed_point;
 
 #endif
 
-void* operator new[](size_t size, const char* pName, int flags, unsigned debugFlags,
-                     const char* file, int line) {
-    return malloc( size );
+void *operator new[](size_t size, const char *pName, int flags, unsigned debugFlags,
+                     const char *file, int line) {
+    return malloc(size);
 }
 
-void* operator new[](size_t size, size_t alignment, size_t alignmentOffset, const char* pName,
-                     int flags, unsigned debugFlags, const char* file, int line) {
-    return malloc( size );
+void *operator new[](size_t size, size_t alignment, size_t alignmentOffset, const char *pName,
+                     int flags, unsigned debugFlags, const char *file, int line) {
+    return malloc(size);
 }
 
 std::shared_ptr<odb::CRenderer> renderer;
 
 void gameLoopTick() {
-    renderer->render( 33 );
+    renderer->render(33);
     renderer->handleSystemEvents();
 }
 
@@ -58,8 +54,8 @@ int main() {
 #else
 
 
-    while ( true ) {
-        renderer->sleep( 33 );
+    while (true) {
+        renderer->sleep(33);
         gameLoopTick();
 
     }
